@@ -1,5 +1,5 @@
 module.exports = {
-    equIA: async (spell, message) => {
+    equIA: (spell, message) => {
         /**
          * An AI for verify and equilibrate spell for Aico discord bot
          * 
@@ -30,7 +30,7 @@ module.exports = {
                     if(effects[0] === "revive") effectScore = 600
                     powerScore = power * 1.75
                     break;
-                case "dammage":
+                case "damage":
                     powerScore = power * 1.5
                     for (let index = 0; index < effects.length; index++) {
                         let effect = effects[index]
@@ -67,81 +67,84 @@ module.exports = {
                 case "shield":
                     if(spell.verifications === 0) {
                         spell.verifications = 1
-                        spell.cost += 50
+                        spell.cost += 5
                     }
                     else if(spell.verifications === 1) {
                         spell.verifications ++
-                        spell.successRate -= 5
+                        spell.successRate -= 0.5
                     }
                     else {
                         spell.verifications = 0
-                        if(spell.power >= 25) {
-                            spell.power -= 25
+                        if(spell.power >= 2.5) {
+                            spell.power -= 2.5
                         }
                     }
                     break;
                 case "heal":
                     if(spell.verifications === 0) {
                         spell.verifications = 1
-                        spell.cost += 50
+                        spell.cost += 5
                     }
                     else if(spell.verifications === 1) {
                         spell.verifications ++
-                        spell.successRate -= 5
+                        spell.successRate -= 0.5
                     }
                     else {
                         spell.verifications = 0
-                        if(spell.power >= 25) {
-                            spell.power -= 25
+                        if(spell.power >= 2.5) {
+                            spell.power -= 2.5
                         }
                         else spell.power = 0
                     }
                     break;
                 case "damage":
-                    switch (spell.verifications) {
+                    if(spell.removeEffect !== 10) switch (spell.verifications) {
                         case 0:
+                            if(effects.length > 0) spell.removeEffect ++
                             spell.verifications ++
-                            spell.cost += 50
+                            spell.cost += 5
                             break;
                         case 1:
-                            if(effects.length > 0) spell.verifications ++
-                            else spell.verifications --
-                            if(spell.power > 25) {
-                                spell.power -= 25
+                            if(effects.length > 0) spell.removeEffect ++
+                            if(spell.power > 2.5) {
+                                spell.power -= 2.5
                             } 
                             else spell.power = 0
-                            break;
-                        case 2:
-                            spell.successRate -= 5
                             spell.verifications ++
                             break;
-                        case 3:
-                            let randomDelete = Math.floor(Math.random() * (spell.effects.length + 1))
-                            spell.effects.splice(randomDelete, 1)
+                        case 2:
+                            if(effects.length > 0) spell.removeEffect ++
                             spell.verifications = 0
+                            spell.successRate -= 0.5
                             break;
-                        
-                        default:
-                            break;
+                    }
+                    else {
+                        let randomDelete = Math.floor(Math.random() * (spell.effects.length + 1))
+                        spell.effects.splice(randomDelete, 1)
                     }
                     break;
                 default:
                     break;
             }
             if(spell.successRate <= 0) spell.successRate = 1
-            let newScore = await equiScore(spell.cost, spell.power, spell.successRate, spell.effects, spell.numberOfTargets, spell.typeOfSpell)
-            if(newScore >= 75) return newScore
-            else {
-                equilibrate(spell)
-            }
+            let newScore = equiScore(spell.cost, spell.power, spell.successRate, spell.effects, spell.numberOfTargets, spell.typeOfSpell)
+            spell.equiScore = newScore
+            return spell
         }
         if(typeof spell !== "object") throw new Error("equIA error: type of `spell` isn't an object")
         if(spell.typeOfSpell === "other") throw new Error("equIA error: the type of the custom spell can't be `other`")
-        let originalScore = await equiScore(spell.cost, spell.power, spell.successRate, spell.effects, spell.numberOfTargets, spell.typeOfSpell)
+        let originalScore = equiScore(spell.cost, spell.power, spell.successRate, spell.effects, spell.numberOfTargets, spell.typeOfSpell)
+        originalScore = Math.floor(originalScore)
         spell.equiScore = originalScore
-        if(originalScore >= 75) return [spell, originalScore]
+        if(originalScore >= 50) return [spell, originalScore]
         else {
-            return equilibrate(spell)
+            spell.removeEffect = 0
+            let newSpell = equilibrate(spell)
+            while (newSpell.equiScore < 50) {
+                newSpell = equilibrate(newSpell)
+            }
+            newSpell.equiScore = Math.floor(newSpell.equiScore)
+            return [newSpell, originalScore]
         }
     }
 }
