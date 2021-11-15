@@ -100,12 +100,12 @@ module.exports = {
                 case "damage":
                     if(spell.removeEffect !== 10) switch (spell.verifications) {
                         case 0:
-                            if(effects.length > 0) spell.removeEffect ++
+                            if(spell.effects.length > 0) spell.removeEffect ++
                             spell.verifications ++
                             spell.cost += 5
                             break;
                         case 1:
-                            if(effects.length > 0) spell.removeEffect ++
+                            if(spell.effects.length > 0) spell.removeEffect ++
                             if(spell.power > 2.5) {
                                 spell.power -= 2.5
                             } 
@@ -113,7 +113,7 @@ module.exports = {
                             spell.verifications ++
                             break;
                         case 2:
-                            if(effects.length > 0) spell.removeEffect ++
+                            if(spell.effects.length > 0) spell.removeEffect ++
                             spell.verifications = 0
                             spell.successRate -= 0.5
                             break;
